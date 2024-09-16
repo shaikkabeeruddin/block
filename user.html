@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperledger Fabric Certificate Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            background-color: #f4f4f4;
+        }
+        .header {
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f4f4f4;
+        }
+        .tile {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+            width: 400px;
+        }
+        .tile h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e7f1ff;
+            border: 1px solid #b3d7ff;
+            white-space: pre-wrap;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Certificate Management</h1>
+    </div>
+
+    <div class="content">
+        <!-- Get Certificate Tile -->
+        <div id="getCertificateTile" class="tile">
+            <h2>Get Certificate</h2>
+            <form id="getCertificateForm">
+                <input type="text" id="getCertificateID" placeholder="Certificate ID" required>
+                <button type="submit">Get Certificate</button>
+            </form>
+            <div id="getCertificateResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        document.getElementById('getCertificateForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const certificateID = document.getElementById('getCertificateID').value;
+
+            try {
+                const response = await fetch('/getCertificate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ certificateID })
+                });
+                const result = await response.json();
+                document.getElementById('getCertificateResult').textContent = JSON.stringify(result, null, 2);
+            } catch (error) {
+                document.getElementById('getCertificateResult').textContent = 'Error fetching certificate: ' + error.message;
+            }
+        });
+    </script>
+</body>
+</html>

@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Hyperledger Fabric Certificate Management</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+        }
+        .header {
+            width: 100%;
+            background-color: #333;
+            color: #fff;
+            padding: 15px;
+            display: flex;
+            justify-content: center;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+        }
+        .header h1 {
+            margin: 0;
+        }
+        .menu {
+            display: flex;
+            justify-content: center;
+        }
+        .menu a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 15px;
+            padding: 10px;
+            border-radius: 4px;
+            transition: background 0.3s;
+        }
+        .menu a:hover {
+            background-color: #575757;
+        }
+        .content {
+            padding: 20px;
+            background-color: #f4f4f4;
+            flex-grow: 1;
+        }
+        .tile {
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            padding: 20px;
+            margin: 20px 0;
+        }
+        .tile h2 {
+            margin-top: 0;
+            color: #333;
+        }
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+        input, button {
+            margin: 10px 0;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            font-size: 16px;
+        }
+        button {
+            background-color: #007bff;
+            color: #fff;
+            border: none;
+            cursor: pointer;
+        }
+        button:hover {
+            background-color: #0056b3;
+        }
+        .result {
+            margin-top: 20px;
+            padding: 10px;
+            border-radius: 4px;
+            background-color: #e7f1ff;
+            border: 1px solid #b3d7ff;
+        }
+        .hidden {
+            display: none;
+        }
+        .history-item {
+            margin: 10px 0;
+            padding: 15px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background-color: #fff;
+        }
+        .history-item h3 {
+            margin-top: 0;
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>Certificate Management</h1>
+        <div class="menu">
+            <a href="#" onclick="showTile('addCertificateTile')">Add Certificate</a>
+            <a href="#" onclick="showTile('updateCertificateStatusTile')">Update Certificate Status</a>
+            <a href="#" onclick="showTile('getCertificateHistoryTile')">Get Certificate History</a>
+            <a href="#" onclick="showTile('getUserIdentityTile')">Get User Identity</a>
+        </div>
+    </div>
+
+    <div class="content">
+        <!-- Add Certificate Tile -->
+        <div id="addCertificateTile" class="tile hidden">
+            <h2>Add Certificate</h2>
+            <form id="addCertificateForm">
+                <input type="text" id="addCertificateID" placeholder="Certificate ID" required>
+                <input type="text" id="addUserID" placeholder="User ID" required>
+                <input type="text" id="addCertificateType" placeholder="Certificate Type" required>
+                <input type="date" id="addIssueDate" placeholder="Issue Date" required>
+                <input type="text" id="addStatus" placeholder="Status" required>
+                <button type="submit">Add Certificate</button>
+            </form>
+            <div id="addCertificateResult" class="result"></div>
+        </div>
+
+        <!-- Update Certificate Status Tile -->
+        <div id="updateCertificateStatusTile" class="tile hidden">
+            <h2>Update Certificate Status</h2>
+            <form id="updateCertificateStatusForm">
+                <input type="text" id="updateCertificateID" placeholder="Certificate ID" required>
+                <input type="text" id="updateNewStatus" placeholder="New Status" required>
+                <button type="submit">Update Status</button>
+            </form>
+            <div id="updateCertificateStatusResult" class="result"></div>
+        </div>
+
+        <!-- Get Certificate History Tile -->
+        <div id="getCertificateHistoryTile" class="tile hidden">
+            <h2>Get Certificate History</h2>
+            <form id="getCertificateHistoryForm">
+                <input type="text" id="historyCertificateID" placeholder="Certificate ID" required>
+                <button type="submit">Get History</button>
+            </form>
+            <div id="getCertificateHistoryResult" class="result"></div>
+            <!-- History Display Section -->
+            <div id="certificateHistory" class="hidden">
+                <!-- History items will be inserted here by JavaScript -->
+            </div>
+        </div>
+
+        <!-- Get User Identity Tile -->
+        <div id="getUserIdentityTile" class="tile hidden">
+            <h2>Get User Identity</h2>
+            <form id="getUserIdentityForm">
+                <button type="submit">Get Identity</button>
+            </form>
+            <div id="getUserIdentityResult" class="result"></div>
+        </div>
+    </div>
+
+    <script>
+        function showTile(tileId) {
+            // Hide all tiles
+            document.querySelectorAll('.tile').forEach(tile => tile.classList.add('hidden'));
+            
+            // Show the selected tile
+            document.getElementById(tileId).classList.remove('hidden');
+        }
+
+        document.getElementById('addCertificateForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const certificateID = document.getElementById('addCertificateID').value;
+            const userID = document.getElementById('addUserID').value;
+            const certificateType = document.getElementById('addCertificateType').value;
+            const issueDate = document.getElementById('addIssueDate').value;
+            const status = document.getElementById('addStatus').value;
+
+            try {
+                const response = await fetch('/addCertificate', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ certificateID, userID, certificateType, issueDate, status })
+                });
+                const result = await response.json();
+                document.getElementById('addCertificateResult').textContent = result.message;
+            } catch (error) {
+                document.getElementById('addCertificateResult').textContent = 'Error adding certificate: ' + error.message;
+            }
+        });
+
+        
+
+        document.getElementById('updateCertificateStatusForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const certificateID = document.getElementById('updateCertificateID').value;
+            const newStatus = document.getElementById('updateNewStatus').value;
+
+            try {
+                const response = await fetch('/updateCertificateStatus', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ certificateID, newStatus })
+                });
+                const result = await response.json();
+                document.getElementById('updateCertificateStatusResult').textContent = result.message;
+            } catch (error) {
+                document.getElementById('updateCertificateStatusResult').textContent = 'Error updating certificate status: ' + error.message;
+            }
+        });
+
+        document.getElementById('getCertificateHistoryForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            const certificateID = document.getElementById('historyCertificateID').value;
+
+            try {
+                const response = await fetch('/getCertificateHistory', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ certificateID })
+                });
+                const history = await response.json();
+                displayHistory(history);
+            } catch (error) {
+                document.getElementById('getCertificateHistoryResult').textContent = 'Error getting certificate history: ' + error.message;
+            }
+        });
+
+        document.getElementById('getUserIdentityForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+
+            try {
+                const response = await fetch('/getUserIdentity', {
+                    method: 'POST',
+                });
+                const result = await response.json();
+                document.getElementById('getUserIdentityResult').textContent = 'User Identity: ' + result.identity;
+            } catch (error) {
+                document.getElementById('getUserIdentityResult').textContent = 'Error getting user identity: ' + error.message;
+            }
+        });
+
+        function displayHistory(history) {
+            const historyContainer = document.getElementById('certificateHistory');
+            historyContainer.innerHTML = ''; // Clear previous content
+            history.forEach(item => {
+                const historyItem = document.createElement('div');
+                historyItem.classList.add('history-item');
+                historyItem.innerHTML = `
+                    <h3>Transaction ID: ${item.txID}</h3>
+                    <p><strong>Timestamp:</strong> ${item.timestamp}</p>
+                    <p><strong>Certificate ID:</strong> ${item.certificate.certificateID}</p>
+                    <p><strong>User ID:</strong> ${item.certificate.userID}</p>
+                    <p><strong>Certificate Type:</strong> ${item.certificate.certificateType}</p>
+                    <p><strong>Issue Date:</strong> ${item.certificate.issueDate}</p>
+                    <p><strong>Status:</strong> ${item.certificate.status}</p>
+                    <p><strong>Deleted:</strong> ${item.isDeleted ? 'Yes' : 'No'}</p>
+                `;
+                historyContainer.appendChild(historyItem);
+            });
+            historyContainer.classList.remove('hidden');
+        }
+    </script>
+</body>
+</html>
